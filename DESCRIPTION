@@ -1,6 +1,6 @@
 Package: RDHonest
 Title: Honest Inference in Regression Discontinuity Designs
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     c(person(given = "Michal",
             family = "Kolesár",
@@ -26,13 +26,13 @@ Config/testthat/edition: 3
 Language: en-US
 URL: https://github.com/kolesarm/RDHonest
 BugReports: https://github.com/kolesarm/RDHonest/issues
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2024-03-22 00:10:30 UTC; kolesarm
+Packaged: 2024-12-16 15:20:40 UTC; kolesarm
 Author: Michal Kolesár [aut, cre, cph]
     (<https://orcid.org/0000-0002-2482-7796>),
   Tim Armstrong [ctb]
 Maintainer: Michal Kolesár <kolesarmi@googlemail.com>
 Repository: CRAN
-Date/Publication: 2024-03-22 20:00:02 UTC
+Date/Publication: 2024-12-16 15:40:02 UTC

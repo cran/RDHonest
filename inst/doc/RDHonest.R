@@ -77,8 +77,22 @@ rn
 rc
 
 ## -----------------------------------------------------------------------------
-100 * (1 - (rc$coefficients$conf.high-rc$coefficients$conf.low) /
-           (rn$coefficients$conf.high-rn$coefficients$conf.low))
+ci_len <- c(rc$coefficients$conf.high-rc$coefficients$conf.low,
+            rn$coefficients$conf.high-rn$coefficients$conf.low)
+100 * (1 - ci_len[1]/ci_len[2])
+
+## -----------------------------------------------------------------------------
+RDHonest(log(cn) | retired ~ elig_year | education, data=rcp,
+         T0=r$coefficients$estimate)
+
+## ----fig.width=4.5, fig.height=3.5, fig.cap="Battistin et al (2009) data"-----
+## see Figure 3
+f3 <- RDScatter(log(cn)~elig_year, data=rcp, cutoff=0, avg=Inf,
+                xlab="Years to eligibility",
+                ylab="Log consumption of non-durables", propdotsize=TRUE,
+                subset=abs(elig_year)<15)
+## Adjust size of dots if they are too big
+f3 + ggplot2::scale_size_area(max_size = 5)
 
 ## -----------------------------------------------------------------------------
 dd <- data.frame()

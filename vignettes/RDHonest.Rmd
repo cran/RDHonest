@@ -653,7 +653,7 @@ the covariate-adjusted outcome $Y_{i}-W_{i}'\tilde{\gamma}_{Y}$ as the outcome,
 \begin{equation*}
   \tilde{\tau}_{Y, h}\pm
   \cv_{1-\alpha}(B_{\tilde{M}, h} / \sd(\hat{\tau}_{\tilde{Y}, h}))\sd(\hat{\tau}_{\tilde{Y}, h}), \qquad
-  \sd(\hat{\tau}_{Y, h})=\sum_{i=1}^{n}k_{i, h}^{2}\sigma^{2}_{\tilde{Y}}(x_{i}),
+  \sd(\hat{\tau}_{\tilde{Y}, h})^2=\sum_{i=1}^{n}k_{i, h}^{2}\sigma^{2}_{\tilde{Y}}(x_{i}),
 \end{equation*}
 where
 $\sigma^{2}_{\tilde{Y}}(x_{i})=\sigma^{2}_{Y}(x_{i})+{\gamma}_{Y}'\Sigma_{WW}(x_{i}){\gamma}_{Y}-2{\gamma}_{Y}'\Sigma_{WY}(x_{i})$.
@@ -700,10 +700,11 @@ rc
 We see that the inclusion of covariates leads to a reduction in the
 rule-of-thumb curvature and also smaller standard errors (this would be true
 even if the bandwidth was kept fixed). Correspondingly, the CIs are tighter by
-about 6 percentage points:
+about 9 percentage points:
 ```{r}
-100 * (1 - (rc$coefficients$conf.high-rc$coefficients$conf.low) /
-           (rn$coefficients$conf.high-rn$coefficients$conf.low))
+ci_len <- c(rc$coefficients$conf.high-rc$coefficients$conf.low,
+            rn$coefficients$conf.high-rn$coefficients$conf.low)
+100 * (1 - ci_len[1]/ci_len[2])
 ```
 
 In the fuzzy RD case, we need to covariate-adjust the treatment $D_i$ as well as
@@ -715,6 +716,29 @@ $\tilde{M}_{D}$. The covariate-adjusted estimator is given by
 $\tilde{\theta}_{h}=\tilde{\tau}_{Y, h}/\tilde{\tau}_{D, h}$, with variances and
 worst-case bias computed as in the case without covariates, replacing the
 treatment and outcome with their covariate-adjusted versions.
+
+A demonstration using the `rcp` data, where we add education controls:
+```{r}
+RDHonest(log(cn) | retired ~ elig_year | education, data=rcp,
+         T0=r$coefficients$estimate)
+```
+
+Relative to the previous estimate without covariates, the point estimate is now
+much larger. This is in part due to slightly smaller bandwidth used, and the
+regression function for the reduced form appears noisy below the cutoff,
+potentially due to measurement error: see Figure 3. As a result, the estimates
+are quite sensitive to the bandwidth used. The noise is also responsible for the
+rather large data-driven estimates of the curvature parameters.
+
+```{r, fig.width=4.5, fig.height=3.5, fig.cap="Battistin et al (2009) data"}
+## see Figure 3
+f3 <- RDScatter(log(cn)~elig_year, data=rcp, cutoff=0, avg=Inf,
+                xlab="Years to eligibility",
+                ylab="Log consumption of non-durables", propdotsize=TRUE,
+                subset=abs(elig_year)<15)
+## Adjust size of dots if they are too big
+f3 + ggplot2::scale_size_area(max_size = 5)
+```
 
 
 ## Aggregated data and weighted regression

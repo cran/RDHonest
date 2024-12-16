@@ -14,19 +14,37 @@ NPReg <- function(d, h, kern="triangular", order=1, se.method="nn", J=3) {
     nZ <- c("(Intercept)", colnames(d$X), paste0("I(", colnames(d$X), "^",
                                                  seq_len(order), ")")[-1])
     colnames(Z) <- nZ[seq_len(order+1)]
+    Lz <- NCOL(Z)
     if (!inherits(d, "IP")) {
         ZZ <- (X>=0)*Z
         colnames(ZZ) <- c(paste0("I(", colnames(d$X), ">0)"),
                           paste0(paste0("I(", colnames(d$X), ">0):"),
                                  colnames(Z))[-1])
         Z <- cbind(ZZ, Z, d$covs)
+        Lz <- 2*Lz
     }
     r0 <- stats::lm.wfit(x=Z, y=d$Y, w=W)
-    class(r0) <- c(if (ncol(d$Y)>1) "mlm", "lm")
-    if (any(is.na(r0$coefficients))) {
+    be <- as.matrix(r0$coefficients)
+    if (any(is.na(be[1:Lz, ]))) {
         return(list(estimate=0, se=NA, est_w=W*0, sigma2=NA*d$Y, eff.obs=0,
-                    fs=NA, lm=r0))
+                    fs=NA, lm=r0, Yadj=d$Y))
     }
+    ## If the collinearity comes from covariates, drop them
+    if (any(is.na(be[-(1:Lz), ]))) {
+        Z <- Z[, !is.na(rowSums(be))]
+        message("The following covariates are collinear",
+                " and are dropped:\n",
+                paste(names(which(is.na(rowSums(be[-(1:Lz), , drop=FALSE])))),
+                      collapse=", "))
+        r0 <- stats::lm.wfit(x=Z, y=d$Y, w=W)
+    }
+    Yadj <- d$Y
+    if (NCOL(Z)> Lz) {
+        Yadj <- d$Y - Z[, -(1:Lz), drop=FALSE] %*%
+            as.matrix(r0$coefficients)[-(1:Lz), , drop=FALSE]
+    }
+
+    class(r0) <- c(if (ncol(d$Y)>1) "mlm", "lm")
     wgt <- W*0
     ok <- W!=0
     wgt[ok] <- solve(qr.R(r0$qr), t(sqrt(W[W>0])*qr.Q(r0$qr)))[1, ]
@@ -41,14 +59,14 @@ NPReg <- function(d, h, kern="triangular", order=1, se.method="nn", J=3) {
     HC <- function(r) r[, rep(seq_len(ny), each=ny)] * r[, rep(seq_len(ny), ny)]
 
     ## For RD, compute variance separately on either side of cutoff
-    ## TODO: better implement
+    ## using covariate-adjusted outcome
     NN <- function(X) {
         res <- matrix(0, nrow=length(X), ncol=ny^2)
         res[ok] <-
             if (!inherits(d, "IP"))
-                rbind(as.matrix(sigmaNN(X[d$m & ok], d$Y[d$m & ok, ], J,
+                rbind(as.matrix(sigmaNN(X[d$m & ok], Yadj[d$m & ok, ], J,
                                         d$w[d$m & ok])),
-                      as.matrix(sigmaNN(X[d$p & ok], d$Y[d$p & ok, ], J,
+                      as.matrix(sigmaNN(X[d$p & ok], Yadj[d$p & ok, ], J,
                                         d$w[d$p & ok])))
             else
                 sigmaNN(X[ok], d$Y[ok, ], J, d$w[ok])
@@ -70,7 +88,7 @@ NPReg <- function(d, h, kern="triangular", order=1, se.method="nn", J=3) {
         V <- as.vector(crossprod(us))
     }
     ret <- list(estimate=r0$coefficients[1], se=sqrt(V[1]), est_w=wgt,
-                sigma2=hsigma2, eff.obs=eff.obs, fs=NA, lm=r0)
+                sigma2=hsigma2, eff.obs=eff.obs, fs=NA, lm=r0, Yadj=Yadj)
 
     if (inherits(d, "FRD")) {
         ret$fs <- r0$coefficients[1, 2]

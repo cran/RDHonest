@@ -153,7 +153,7 @@
 #'
 #' \cite{Timothy B. Armstrong and Michal Kolesár. Simple and honest confidence
 #' intervals in nonparametric regression. Quantitative Economics, 11(1):1–39,
-#' January 2020.}
+#' January 2020. \doi{10.3982/QE1199}}
 #'
 #' \cite{Michal Kolesár and Christoph Rothe. Inference in regression
 #' discontinuity designs with a discrete running variable. American Economic
@@ -210,7 +210,8 @@ RDHonest <- function(formula, data, subset, weights, cutoff=0, M,
 
     if (missing(M)) {
         M <- MROT(d)
-        message("Using Armstong & Kolesar (2020) ROT for smoothness constant M")
+        message(paste0("Using Armstrong & Kolesar (2020) ROT ",
+                       "for smoothness constant M"))
     }
 
     if (kernel_type(kern)=="optimal") {
@@ -234,13 +235,9 @@ RDHonest <- function(formula, data, subset, weights, cutoff=0, M,
 }
 
 covariate_adjust <- function(d, kern, h) {
-    if (is.null(d$Y_unadj)) d$Y_unadj <- d$Y
-    d0 <- d
-    d0$Y <- d0$Y_unadj
-    r <- NPReg(d0, h, kern, order=1, se.method="EHW")
-    be <- as.matrix(r$lm$coefficients)
-    L <- NCOL(d$covs)
-    d$Y <-d$Y_unadj-d$covs %*% be[seq_len(L)+NROW(be)-L, , drop=FALSE]
+    r <- NPReg(d, h, kern, order=1, se.method="EHW")
+    d$Y_unadj <- d$Y
+    d$Y <- r$Yadj
     d
 }
 
