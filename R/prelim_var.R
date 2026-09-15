@@ -86,8 +86,8 @@ PrelimVar <- function(d, se.initial="EHW") {
 Moulton <- function(u, clusterid) {
     den <- sum(tapply(u[, 1], clusterid, length)^2)-NROW(u)
     if (den>0) {
-        us <- apply(u, 2, function(x) tapply(x, clusterid, sum))
-        as.vector(crossprod(us)-crossprod(u)) / den
+        us <- rowsum(u, clusterid)
+        as.vector(crossprod(us) - crossprod(u)) / den
     } else {
         rep(0, NCOL(u)^2)
     }
@@ -138,7 +138,7 @@ IKBW <- function(d, kern="triangular", verbose=FALSE) {
     N <- Nm+Np
 
     ## STEP 0: Kernel constant
-    s <- kernC[kernC$order==1 & kernC$boundary==TRUE & kernC$kernel==kern, ]
+    s <- kernC[kernC$order==1 & kernC$boundary & kernC$kernel==kern, ]
     const <- (s$nu0/s$mu2^2)^(1/5)
 
     ## STEP 1: Estimate f(0), sigma^2_(0) and sigma^2_+(0), using Silverman

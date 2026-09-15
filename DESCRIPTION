@@ -1,6 +1,6 @@
 Package: RDHonest
 Title: Honest Inference in Regression Discontinuity Designs
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     c(person(given = "Michal",
             family = "Kolesár",
@@ -16,7 +16,7 @@ Description: Honest and nearly-optimal confidence intervals in fuzzy and sharp
     linear regression. The implementation is based on Armstrong and Kolesár (2018)
     <doi:10.3982/ECTA14434>, and Kolesár and Rothe (2018)
     <doi:10.1257/aer.20160945>. Supports covariates, clustering, and weighting.
-Depends: R (>= 4.3.0)
+Depends: R (>= 4.5.0)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -26,13 +26,13 @@ Config/testthat/edition: 3
 Language: en-US
 URL: https://github.com/kolesarm/RDHonest
 BugReports: https://github.com/kolesarm/RDHonest/issues
-RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.1.0
 NeedsCompilation: no
-Packaged: 2024-12-16 15:20:40 UTC; kolesarm
-Author: Michal Kolesár [aut, cre, cph]
-    (<https://orcid.org/0000-0002-2482-7796>),
+Packaged: 2026-09-14 20:02:46 UTC; kolesarm
+Author: Michal Kolesár [aut, cre, cph] (ORCID:
+    <https://orcid.org/0000-0002-2482-7796>),
   Tim Armstrong [ctb]
 Maintainer: Michal Kolesár <kolesarmi@googlemail.com>
 Repository: CRAN
-Date/Publication: 2024-12-16 15:40:02 UTC
+Date/Publication: 2026-09-15 06:30:10 UTC

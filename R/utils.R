@@ -9,7 +9,7 @@ NPRData <- function(d, cutoff, class, fo) {
                   "running_variable | covariates' for fuzzy RD",
                   ",\n'outcome ~ running_variable' for inference at a point.")
     if (ncol(X) != 1)
-        stop(paste0("Single running variable required.\n", msg))
+        stop("Single running variable required.\n", msg)
     if (is.unsorted(X)) {
         idx <- sort(X, index.return=TRUE)$ix
         X <- X[idx, , drop=FALSE]
@@ -24,7 +24,7 @@ NPRData <- function(d, cutoff, class, fo) {
                          clusterid=d$"(clusterid)", w=stats::model.weights(d)),
                     class=class)
     if (ncol(df$Y)!=length(fo)[1])
-        stop(paste0("Single outcome and treatment variable required.", msg))
+        stop("Single outcome and treatment variable required. ", msg)
     if (is.null(df$w)) df$w <- rep(1L, NROW(X))
     if (length(fo)[2] > 1) df$covs <- rhs(2)[, -1, drop=FALSE]
 
@@ -45,7 +45,7 @@ NPRData <- function(d, cutoff, class, fo) {
 ## @param negative logical: should the lower endpoint be \code{1/ival} (if the
 ##     root is guaranteed to be positive), or \code{-ival}?
 FindZero <- function(f, ival=1.1, negative=TRUE) {
-    minval <- function(ival) if (negative==TRUE) -ival else min(1/ival, 1e-3)
+    minval <- function(ival) if (negative) -ival else min(1/ival, 1e-3)
 
     while (sign(f(ival))==sign(f(minval(ival))))
         ival <- 2*ival

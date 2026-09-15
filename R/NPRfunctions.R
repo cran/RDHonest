@@ -25,17 +25,17 @@ NPReg <- function(d, h, kern="triangular", order=1, se.method="nn", J=3) {
     }
     r0 <- stats::lm.wfit(x=Z, y=d$Y, w=W)
     be <- as.matrix(r0$coefficients)
-    if (any(is.na(be[1:Lz, ]))) {
+    if (anyNA(be[1:Lz, ])) {
         return(list(estimate=0, se=NA, est_w=W*0, sigma2=NA*d$Y, eff.obs=0,
                     fs=NA, lm=r0, Yadj=d$Y))
     }
     ## If the collinearity comes from covariates, drop them
-    if (any(is.na(be[-(1:Lz), ]))) {
+    if (anyNA(be[-(1:Lz), ])) {
         Z <- Z[, !is.na(rowSums(be))]
-        message("The following covariates are collinear",
-                " and are dropped:\n",
-                paste(names(which(is.na(rowSums(be[-(1:Lz), , drop=FALSE])))),
-                      collapse=", "))
+
+        betail <- utils::tail(be, -Lz)
+        message("The following covariates are collinear and are dropped:\n",
+                toString(rownames(betail)[is.na(rowSums(betail))]))
         r0 <- stats::lm.wfit(x=Z, y=d$Y, w=W)
     }
     Yadj <- d$Y
@@ -63,13 +63,14 @@ NPReg <- function(d, h, kern="triangular", order=1, se.method="nn", J=3) {
     NN <- function(X) {
         res <- matrix(0, nrow=length(X), ncol=ny^2)
         res[ok] <-
-            if (!inherits(d, "IP"))
+            if (inherits(d, "IP")) {
+                sigmaNN(X[ok], d$Y[ok, ], J, d$w[ok])
+            } else {
                 rbind(as.matrix(sigmaNN(X[d$m & ok], Yadj[d$m & ok, ], J,
                                         d$w[d$m & ok])),
                       as.matrix(sigmaNN(X[d$p & ok], Yadj[d$p & ok, ], J,
                                         d$w[d$p & ok])))
-            else
-                sigmaNN(X[ok], d$Y[ok, ], J, d$w[ok])
+            }
         res
     }
 
@@ -83,8 +84,8 @@ NPReg <- function(d, h, kern="triangular", order=1, se.method="nn", J=3) {
         V <- colSums(as.matrix(wgt^2 * hsigma2))+
             d$rho * (sum(tapply(wgt, d$clusterid, sum)^2)-sum(wgt^2))
     } else {
-        us <- apply(as.matrix(wgt*r0$residuals)[ok, , drop=FALSE], 2,
-                    function(x) tapply(x, d$clusterid[ok], sum))
+        res_ok <- as.matrix(r0$residuals)[ok, , drop = FALSE]
+        us     <- rowsum(wgt[ok] * res_ok, d$clusterid[ok])
         V <- as.vector(crossprod(us))
     }
     ret <- list(estimate=r0$coefficients[1], se=sqrt(V[1]), est_w=wgt,
@@ -119,9 +120,9 @@ MROT <- function(d) {
         ## STEP 1: Estimate global polynomial regression
         r1 <- unname(stats::lm.wfit(y=d$Y, x=outer(drop(d$X), 0:4, "^"),
                                     w=d$w)$coefficients)
-        if (length(unique(d$X))<4 || any(is.na(r1)))
-            stop(paste0("Insufficient unique values of the running",
-                        " variable to compute rule of thumb for M."))
+        if (length(unique(d$X))<4 || anyNA(r1))
+            stop("Insufficient unique values of the running",
+                 " variable to compute rule of thumb for M.")
         f2 <- function(x) abs(2*r1[3]+6*x*r1[4]+12*x^2*r1[5])
         ## maximum occurs either at endpoints, or else at the extremum,
         ## -r1[4]/(4*r1[5]), if the extremum is in the support

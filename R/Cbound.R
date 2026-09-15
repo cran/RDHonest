@@ -41,7 +41,7 @@
 #' @examples
 #' ## Subset data to increase speed
 #' r <- RDHonest(log(earnings)~yearat14, data=cghs,
-#'               subset=abs(yearat14-1947)<10,
+#'               subset=abs(yearat14-1947)<8,
 #'               cutoff=1947, M=0.04, h=3)
 #' RDSmoothnessBound(r, s=2)
 #' @export
@@ -120,14 +120,14 @@ RDSmoothnessBound <- function(object, s, separate=FALSE, multiple=TRUE,
     }
 
     if (separate) {
-        withr::with_seed(42, po <- hatM(Dp))
-        withr::with_seed(42, ne <- hatM(Dm))
+        po <- withr::with_seed(42, hatM(Dp))
+        ne <- withr::with_seed(42, hatM(Dm))
         ret <- data.frame(rbind("Below cutoff"=unlist(ne[1:2]),
                                 "Above cutoff"=unlist(po[1:2])))
     } else {
         ret <- withr::with_seed(42,
                                 data.frame((hatM(cbind(Dm, Dp))[1:2])))
-        rownames(ret) <- c("Pooled")
+        rownames(ret) <- "Pooled"
     }
     ret
 }

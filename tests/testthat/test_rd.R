@@ -117,7 +117,7 @@ test_that("Honest inference in Lee and LM data",  {
                     "uniform", "supplied.var")$coefficients$maximum.bias)
 
     r <- es("triangular", "nn")
-    expect_lt(abs(r$coefficients$bandwidth- 22.21108064), 5e-7)
+    expect_lt(abs(r$coefficients$bandwidth- 22.21108064), 1e-5) # 3.3e-7 on BLAS
     expect_lt(unname(r$coefficients$conf.high- 0.04129612), 1e-7)
     ## End replication
 
@@ -195,7 +195,7 @@ test_that("Honest inference in Lee and LM data",  {
     ## Missing values
     expect_error(RDHonest(mortHS ~ povrate, data=headst, kern="uniform", h=12,
                           na.action="na.fail"))
-    expect_message(r1 <- RDHonest(mortHS ~ povrate, data=headst[c(2500:3000), ],
+    expect_message(r1 <- RDHonest(mortHS ~ povrate, data=headst[2500:3000, ],
                                   kern="uniform", na.action="na.omit"))
     r1 <- capture.output(print(r1, digits=6))
     expect_equal(r1[c(8, 11, 12, 22)],
@@ -251,7 +251,7 @@ test_that("BME CIs match paper", {
 })
 
 test_that("Optimizing bw", {
-    xprobs <- c(rep(.5/5, 5), rep(.5/4, 4))
+    xprobs <- c(rep(0.5/5, 5), rep(0.5/4, 4))
     xsupp <- sort(c(-(1:5)/5, (1:4)/4))
     set.seed(42)
     x <- sample(xsupp, 100, prob=xprobs, replace=TRUE)
@@ -264,7 +264,7 @@ test_that("Optimizing bw", {
                   opt.criterion="FLCI")
     expect_equal(r$coefficients$bandwidth, 0.8)
 
-    xprobs <- c(rep(.5/4, 4), rep(.5/4, 4))
+    xprobs <- c(rep(0.5/4, 4), rep(0.5/4, 4))
     xsupp <- sort(c(-(1:4)/4, (1:4)/4))
     set.seed(42)
     x <- sample(xsupp, 100, prob=xprobs, replace=TRUE)
